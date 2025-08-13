@@ -76,10 +76,16 @@ function App() {
 
   // PUBLIC_INTERFACE
   const handleDelete = async (id) => {
-    /** Delete a note and update state. */
+    /** Delete a note and update state. Shows feedback if deletion fails. */
     const ok = window.confirm('Delete this note? This cannot be undone.');
     if (!ok) return;
-    await deleteNote(id);
+
+    const success = await deleteNote(id);
+    if (!success) {
+      window.alert('Failed to delete note. Please try again.');
+      return;
+    }
+
     const data = await listNotes({ search, tag: activeTag });
     setNotes(data);
     if (selectedId === id) {

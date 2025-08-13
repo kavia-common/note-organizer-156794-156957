@@ -172,6 +172,10 @@ export async function updateNote(id, updates) {
   return updated;
 }
 
+/** 
+ * Note: When Supabase is configured, we must not fall back to localStorage for deletes.
+ * If the cloud delete fails, return false so the UI can show appropriate feedback.
+ */
 // PUBLIC_INTERFACE
 export async function deleteNote(id) {
   /** Delete a note by id. Returns true on success. */
@@ -179,18 +183,28 @@ export async function deleteNote(id) {
 
   if (supabase) {
     try {
-      const { error } = await supabase.from('notes').delete().eq('id', id);
-      if (error) throw error;
-      return true;
+      // Use .select().maybeSingle() so we can verify a row was actually deleted.
+      const { data, error } = await supabase
+        .from('notes')
+        .delete()
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        console.error('Supabase deleteNote error:', error);
+        return false;
+      }
+      // If no row matched the id, data can be null. Treat as failure so UI can notify.
+      return !!data;
     } catch (err) {
-      console.error('Supabase deleteNote failed, using local storage. Error:', err);
-      const notes = lsRead();
-      const filtered = notes.filter((n) => n.id !== id);
-      lsWrite(filtered);
-      return true;
+      console.error('Supabase deleteNote failed:', err);
+      // Do not write to localStorage when Supabase is configured; it causes state divergence.
+      return false;
     }
   }
 
+  // Local storage fallback (only when Supabase is not configured)
   const notes = lsRead();
   const filtered = notes.filter((n) => n.id !== id);
   lsWrite(filtered);

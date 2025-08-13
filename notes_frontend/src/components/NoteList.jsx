@@ -23,6 +23,7 @@ export default function NoteList({ notes, selectedId, onSelect, onDelete }) {
           <div className="note-item-header">
             <div className="note-title">{n.title || 'Untitled'}</div>
             <button
+              type="button"
               className="icon-button"
               onClick={(e) => {
                 e.stopPropagation();
