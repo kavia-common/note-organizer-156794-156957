@@ -16,9 +16,6 @@ export default function NoteList({ notes, selectedId, onSelect, onDelete }) {
           key={n.id}
           className={`note-list-item ${selectedId === n.id ? 'active' : ''}`}
           onClick={() => onSelect(n.id)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && onSelect(n.id)}
         >
           <div className="note-item-header">
             <div className="note-title">{n.title || 'Untitled'}</div>
@@ -26,6 +23,8 @@ export default function NoteList({ notes, selectedId, onSelect, onDelete }) {
               type="button"
               className="icon-button"
               onClick={(e) => {
+                // Prevent card-level handlers from firing and block any default behavior.
+                e.preventDefault();
                 e.stopPropagation();
                 onDelete(n.id);
               }}
